@@ -6,7 +6,7 @@ FROM python:3.10-slim
 WORKDIR /app
 
 # 3. Copy your application's code into the container
-COPY forwarder.py .
+COPY reroute.py .
 
 # 4. (Optional) Install dependencies if you had any (not needed for this script)
 # For example, if you had a requirements.txt:
