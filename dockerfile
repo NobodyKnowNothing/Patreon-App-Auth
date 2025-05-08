@@ -21,7 +21,7 @@ EXPOSE 8080
 # 6. Define the command to run your application
 # This will execute `python forwarder.py` when the container starts.
 # You can override the default script arguments when running the container.
-ENTRYPOINT ["python", "forwarder.py"]
+ENTRYPOINT ["python", "reroute.py"]
 
 # (Optional) You can provide default arguments for the ENTRYPOINT using CMD
 # If you run `docker run <image_name>` without any further arguments, these CMD args will be used.
