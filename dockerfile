@@ -4,9 +4,9 @@ FROM python:3.10-slim
 
 # 2. Set the working directory in the container
 WORKDIR /app
-#
+
 # 3. Copy your application's code into the container
-COPY reroute.py .
+COPY app.py .
 
 # 4. (Optional) Install dependencies if you had any (not needed for this script)
 # For example, if you had a requirements.txt:
@@ -21,7 +21,7 @@ EXPOSE 8080
 # 6. Define the command to run your application
 # This will execute `python forwarder.py` when the container starts.
 # You can override the default script arguments when running the container.
-ENTRYPOINT ["python", "reroute.py"]
+ENTRYPOINT ["python", "app.py"]
 
 # (Optional) You can provide default arguments for the ENTRYPOINT using CMD
 # If you run `docker run <image_name>` without any further arguments, these CMD args will be used.
