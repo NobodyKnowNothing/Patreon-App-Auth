@@ -12,7 +12,7 @@ PATREON_WEBHOOK_SECRET = os.environ.get("PATREON_WEBHOOK_SECRET")
 if not PATREON_WEBHOOK_SECRET:
     logging.error("CRITICAL: PATREON_WEBHOOK_SECRET is not configured. Webhook verification will fail.")
     
-PATRONS_FILE = "Google Sheets" 
+PATRONS_FILE = "Google Sheet" 
 
 # --- Logging Setup ---
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -25,15 +25,14 @@ app = Flask(__name__)
 def load_patrons() -> dict:
     """Loads the dictionary of active patron User IDs and their data (name) from the JSON file."""
     try:
-        with open(PATRONS_FILE, 'r') as f:
-            patrons_data = json.load(read_cell_value('A1'))  # Assuming this function reads from a Google Sheet or similar
-            if not isinstance(patrons_data, dict):
-                logging.warning(
-                    f"'{PATRONS_FILE}' does not contain a dictionary as expected. "
-                    "Starting with an empty patron list. Old data (if any) is not migrated."
-                )
-                return {}
-            return patrons_data
+        patrons_data = json.load(read_cell_value('A1'))  # Assuming this function reads from a Google Sheet or similar
+        if not isinstance(patrons_data, dict):
+            logging.warning(
+                f"'{PATRONS_FILE}' does not contain a dictionary as expected. "
+                "Starting with an empty patron list. Old data (if any) is not migrated."
+            )
+            return {}
+        return patrons_data
     except FileNotFoundError:
         logging.info(f"'{PATRONS_FILE}' not found. Starting with an empty patron list.")
         return {}
