@@ -1,27 +1,41 @@
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
+import json
+import os
 from googleapiclient.errors import HttpError
 
 # If modifying these scopes, delete the file token.json.
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 
 SPREADSHEET_ID = '1ghV9kA2X-jGdGsCRcgENLs270fE7ehbvH1KppAp4Q0c'
-SERVICE_ACCOUNT_FILE = 'credentials.json'
+SERVICE_ACCOUNT_JSON_ENV_VAR = 'GOOGLE_APPLICATION_CREDENTIALS_JSON'
 SHEET_NAME = 'Sheet1'
 # --- Helper Function to Get Authenticated Service ---
+# --- Helper Function to Get Authenticated Service ---
 def get_sheets_service():
-    """Authenticates with Google Sheets API using a service account."""
+    """Authenticates with Google Sheets API using service account info from an environment variable."""
+    creds_json_str = os.getenv(SERVICE_ACCOUNT_JSON_ENV_VAR)
+    if not creds_json_str:
+        print(f"Error: Environment variable '{SERVICE_ACCOUNT_JSON_ENV_VAR}' not set.")
+        print("Please set it to the JSON content of your service account key.")
+        return None
+
     try:
-        creds = service_account.Credentials.from_service_account_file(
-            SERVICE_ACCOUNT_FILE, scopes=SCOPES)
+        # Parse the JSON string into a dictionary
+        creds_info = json.loads(creds_json_str)
+    except json.JSONDecodeError as e:
+        print(f"Error: Failed to parse JSON from environment variable '{SERVICE_ACCOUNT_JSON_ENV_VAR}'.")
+        print(f"JSONDecodeError: {e}")
+        print("Ensure the environment variable contains valid JSON.")
+        return None
+
+    try:
+        creds = service_account.Credentials.from_service_account_info(
+            creds_info, scopes=SCOPES)
         service = build('sheets', 'v4', credentials=creds)
         return service
-    except FileNotFoundError:
-        print(f"Error: Service account key file not found at {SERVICE_ACCOUNT_FILE}")
-        print("Please ensure 'SERVICE_ACCOUNT_FILE' variable is set correctly.")
-        return None
     except Exception as e:
-        print(f"An error occurred during authentication: {e}")
+        print(f"An error occurred during authentication using service account info: {e}")
         return None
 sheets_service = get_sheets_service()
 if sheets_service:
