@@ -10,7 +10,7 @@ SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 SPREADSHEET_ID = '1ghV9kA2X-jGdGsCRcgENLs270fE7ehbvH1KppAp4Q0c'
 SERVICE_ACCOUNT_JSON_ENV_VAR = 'GOOGLE_APPLICATION_CREDENTIALS_JSON'
 SHEET_NAME = 'Sheet1'
-# --- Helper Function to Get Authenticated Service ---
+
 # --- Helper Function to Get Authenticated Service ---
 def get_sheets_service():
     """Authenticates with Google Sheets API using service account info from an environment variable."""

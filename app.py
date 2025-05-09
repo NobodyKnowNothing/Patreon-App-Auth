@@ -12,7 +12,7 @@ PATREON_WEBHOOK_SECRET = os.environ.get("PATREON_WEBHOOK_SECRET")
 if not PATREON_WEBHOOK_SECRET:
     logging.error("CRITICAL: PATREON_WEBHOOK_SECRET is not configured. Webhook verification will fail.")
     
-PATRONS_FILE = "patrons.json" 
+PATRONS_FILE = "Google Sheets" 
 
 # --- Logging Setup ---
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -49,7 +49,8 @@ def save_patrons(patrons_dict: dict):
     """Saves the dictionary of active patron User IDs and their data to the JSON file."""
     try:
         delete_cell_content('A1')  # Assuming this function clears the content of a Google Sheet cell
-        write_to_cell(patrons_dict, 'A1')  # Assuming this function writes to a Google Sheet or similar
+        patrons_json_str = json.dumps(patrons_dict)
+        write_to_cell(patrons_json_str, 'A1')  # Assuming this function writes to a Google Sheet or similar
         logging.info(f"Saved {len(patrons_dict)} patrons to '{PATRONS_FILE}'.")
     except IOError as e:
         logging.error(f"IOError saving patrons file '{PATRONS_FILE}': {e}")
