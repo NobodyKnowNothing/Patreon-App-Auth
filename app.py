@@ -4,6 +4,7 @@ import hashlib
 import hmac
 import logging
 from flask import Flask, request, jsonify, abort
+from sheetsapi import write_to_cell, delete_cell_content, read_cell_value
 from werkzeug.exceptions import HTTPException
 # --- Configuration ---
 PATREON_WEBHOOK_SECRET = os.environ.get("PATREON_WEBHOOK_SECRET")
@@ -25,7 +26,7 @@ def load_patrons() -> dict:
     """Loads the dictionary of active patron User IDs and their data (name) from the JSON file."""
     try:
         with open(PATRONS_FILE, 'r') as f:
-            patrons_data = json.load(f)
+            patrons_data = json.load(read_cell_value('A1'))  # Assuming this function reads from a Google Sheet or similar
             if not isinstance(patrons_data, dict):
                 logging.warning(
                     f"'{PATRONS_FILE}' does not contain a dictionary as expected. "
@@ -47,8 +48,8 @@ def load_patrons() -> dict:
 def save_patrons(patrons_dict: dict):
     """Saves the dictionary of active patron User IDs and their data to the JSON file."""
     try:
-        with open(PATRONS_FILE, 'w') as f:
-            json.dump(patrons_dict, f, indent=2)
+        delete_cell_content('A1')  # Assuming this function clears the content of a Google Sheet cell
+        write_to_cell(patrons_dict, 'A1')  # Assuming this function writes to a Google Sheet or similar
         logging.info(f"Saved {len(patrons_dict)} patrons to '{PATRONS_FILE}'.")
     except IOError as e:
         logging.error(f"IOError saving patrons file '{PATRONS_FILE}': {e}")
