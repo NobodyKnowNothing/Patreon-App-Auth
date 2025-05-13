@@ -25,7 +25,7 @@ app = Flask(__name__)
 def load_patrons() -> dict:
     """Loads the dictionary of active patron User IDs and their data (name) from the JSON file."""
     try:
-        patrons_data = json.load(read_cell_value('A1'))  # Assuming this function reads from a Google Sheet or similar
+        patrons_data = json.loads(read_cell_value('A1'))  # Assuming this function reads from a Google Sheet or similar
         if not isinstance(patrons_data, dict):
             logging.warning(
                 f"'{PATRONS_FILE}' does not contain a dictionary as expected. "
