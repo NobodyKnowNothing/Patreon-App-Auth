@@ -41,7 +41,8 @@ def load_patrons() -> dict:
         # Consider backing up the corrupted file here
         return {}
     except Exception as e:
-        logging.error(f"Unexpected error loading patrons file '{PATRONS_FILE}': {e}")
+        import traceback
+        logging.error(f"Unexpected error loading patrons file '{PATRONS_FILE}': {traceback.format_exc()}")
         return {}
 
 def save_patrons(patrons_dict: dict):
