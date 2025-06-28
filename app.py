@@ -23,7 +23,7 @@ app = Flask(__name__)
 # --- Patron Storage Functions ---
 
 def load_patrons() -> dict:
-    """Loads the dictionary of active patron User IDs and their data (name) from the JSON file."""
+    """Loads the dictionary of active patron Usernames and their data (name) from the JSON file."""
     try:
         patrons_data = json.loads(read_cell_value('A1'))  # Assuming this function reads from a Google Sheet or similar
         if not isinstance(patrons_data, dict):
@@ -46,7 +46,7 @@ def load_patrons() -> dict:
         return {}
 
 def save_patrons(patrons_dict: dict):
-    """Saves the dictionary of active patron User IDs and their data to the JSON file."""
+    """Saves the dictionary of active patron Usernames and their data to the JSON file."""
     try:
         delete_cell_content('A1')  # Assuming this function clears the content of a Google Sheet cell
         patrons_json_str = json.dumps(patrons_dict)
@@ -151,9 +151,9 @@ def patreon_webhook():
                 if patron_status == 'active_patron':
                     if user_name:
                         patron_entry = {"name": user_name}
-                        if current_patrons.get(primary_user_id) != patron_entry:
+                        if current_patrons.get(user_name) != patron_entry:
                             logging.info(f"Pledge active for User ID: {primary_user_id}, Name: {user_name}. Adding/Updating patron.")
-                            current_patrons[primary_user_id] = patron_entry
+                            current_patrons[user_name] = patron_entry
                             patrons_changed = True
                         else:
                             logging.info(f"Pledge active for User ID: {primary_user_id}, Name: {user_name}. Data unchanged, no update needed.")
@@ -163,15 +163,15 @@ def patreon_webhook():
                             f"User ID {primary_user_id} has 'active_patron' status but name could not be extracted from 'included' data. "
                             "Ensure webhook is configured to include user details (e.g., `fields[user]=full_name&include=user`)."
                         )
-                        if primary_user_id not in current_patrons:
+                        if user_name not in current_patrons:
                             logging.warning(f"User ID {primary_user_id} (active, name unknown) is not in current patrons. Not adding without name.")
                         else:
                             # Already in patrons, and still active. Keep existing entry even if name was missing in this specific payload.
                             logging.info(f"User ID {primary_user_id} (active, name unknown in current payload) already in patrons. Keeping existing entry.")
                 else: # Not 'active_patron' (e.g., 'declined_patron', 'former_patron', or other)
-                    if primary_user_id in current_patrons:
+                    if user_name in current_patrons:
                         logging.info(f"Patron User ID: {primary_user_id} no longer active (status: {patron_status}). Removing from patrons list.")
-                        del current_patrons[primary_user_id]
+                        del current_patrons[user_name]
                         patrons_changed = True
                     else:
                         logging.info(f"Received non-active status ({patron_status}) for User ID: {primary_user_id}, who was not in our active patrons list.")
@@ -181,66 +181,10 @@ def patreon_webhook():
             if not primary_user_id:
                 logging.warning(f"Could not extract User ID from {event_type} event payload. Relationships: {json.dumps(payload.get('data', {}).get('relationships', {}))}")
             else:
-                if primary_user_id in current_patrons:
+                user_name = _find_user_name_in_included(payload, primary_user_id)
+                if user_name in current_patrons:
                     logging.info(f"Pledge deleted event for User ID: {primary_user_id}. Removing from patrons list.")
-                    del current_patrons[primary_user_id]
+                    del current_patrons[user_name]
                     patrons_changed = True
                 else:
                     logging.info(f"Received {event_type} event for User ID: {primary_user_id}, who was not in our active patrons list.")
-        else:
-            logging.info(f"Ignoring unhandled event type: {event_type}")
-
-        if patrons_changed:
-            save_patrons(current_patrons)
-            # Logging of save action is now inside save_patrons()
-
-        return jsonify({"status": "success", "event_processed": event_type}), 200
-
-    except KeyError as e:
-        logging.error(f"KeyError accessing payload data for event {event_type}: {e} - Payload: {json.dumps(payload)}", exc_info=True)
-        abort(400, description=f"Error processing payload structure for event {event_type}. Key: {e}")
-    except Exception as e:
-        logging.error(f"Unexpected error processing webhook event {event_type}: {e}", exc_info=True)
-        abort(500, description=f"Internal server error processing webhook event {event_type}.")
-
-
-# --- API Endpoint for Checking Patron Status ---
-
-@app.route('/check_patron/<string:user_id_param>', methods=['GET'])
-def check_patron(user_id_param): # Renamed param to avoid conflict with any module-level var named user_id
-    """Checks if a given User ID belongs to an active patron and returns their name if so."""
-    logging.debug(f"API request: Checking status for User ID: {user_id_param}")
-
-    if not user_id_param:
-        return jsonify({"error": "User ID cannot be empty"}), 400
-
-    current_patrons = load_patrons() # Returns a dict
-    patron_data = current_patrons.get(user_id_param)
-
-    if patron_data:
-        patron_name = patron_data.get("name", "N/A") # Provide a default if name key is somehow missing
-        logging.info(f"API check result for User ID {user_id_param}: Patron, Name: {patron_name}")
-        return jsonify({"user_id": user_id_param, "is_patron": True, "name": patron_name})
-    else:
-        logging.info(f"API check result for User ID {user_id_param}: Not Patron")
-        return jsonify({"user_id": user_id_param, "is_patron": False})
-
-# --- Health Check Endpoint (Good Practice) ---
-@app.route('/health', methods=['GET'])
-def health_check():
-    """Simple health check endpoint."""
-    return jsonify({"status": "ok"}), 200
-
-# --- Main Execution ---
-if __name__ == '__main__':
-    # This log is a reminder if the hardcoded secret was removed and not replaced by an env var
-    if not PATREON_WEBHOOK_SECRET:
-        logging.warning(
-            "Reminder: PATREON_WEBHOOK_SECRET is not set or is empty. "
-            "Webhook signature verification will fail. "
-            "Ensure it's set (either hardcoded for demo or via environment variable for production)."
-        )
-
-    logging.info("Starting Flask development server on http://0.0.0.0:8080")
-    port = int(os.environ.get("PORT", 8080)) # Read PORT env var
-    app.run(host='0.0.0.0', port=port, debug=False)
