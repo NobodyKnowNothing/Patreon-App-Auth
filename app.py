@@ -253,5 +253,5 @@ if __name__ == \'__main__\':
 
     logging.info("Starting Flask development server on http://0.0.0.0:8080")
     port = int(os.environ.get("PORT", 8080)) # Read PORT env var
-    app.run(host=\'127.0.0.1\', port=port, debug=False)
+    app.run(host='0.0.0.0', port=port, debug=False)
 
