@@ -4,3 +4,7 @@ google-auth
 google-auth-httplib2
 google-auth-oauthlib
 # Optional: gunicorn # For production deployments
+fastapi
+uvicorn[standard]
+pydantic
+httpx
