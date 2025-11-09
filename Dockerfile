@@ -25,8 +25,8 @@ RUN addgroup --system appgroup && adduser --system --ingroup appgroup appuser
 # Copy the application code into the container at /app
 # This should be done AFTER pip install to leverage Docker cache
 COPY main.py .
-COPY fastapi_app/ ./fastapi_app/
-COPY Models/ ./Models/
+COPY fastapi_app ./fastapi_app
+COPY Models ./Models
 
 # Change ownership of the /app directory to the new user
 # This is good practice, though the app primarily uses Google Sheets for patron data.
