@@ -26,7 +26,6 @@ RUN addgroup --system appgroup && adduser --system --ingroup appgroup appuser
 # This should be done AFTER pip install to leverage Docker cache
 COPY main.py .
 COPY fastapi_app ./fastapi_app
-COPY Models ./Models
 
 # Change ownership of the /app directory to the new user
 # This is good practice, though the app primarily uses Google Sheets for patron data.
