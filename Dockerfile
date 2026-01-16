@@ -1,5 +1,5 @@
 # Use an official Python runtime as a parent image
-FROM python:3.11-slim
+FROM python:3.14.0rc1-slim
 
 # Set environment variables
 # Prevent python from writing pyc files to disc (optional)
